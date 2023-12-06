@@ -90,13 +90,13 @@ async def cmd_top_level(message: types.Message):
 
 
 async def cmd_top_questions_qty(message: types.Message):
-    result = db.get_top_users('questions_qty')
+    result = db.get_top_users('(questions_qty + movie_answers)')
     # Начинаем формировать сообщение
     message_text = "<b>🏆 Топ по количеству вопросов:</b>\n"
 
     # Добавляем каждый элемент топа в сообщение
     for i in range(len(result)):
-        message_text += f"{i + 1}. {result[i][2]} - {result[i][7]} вопросов\n"
+        message_text += f"{i + 1}. {result[i][2]} - {result[i][7] + result[i][10]} вопросов\n"
 
     # Отправляем сформированное сообщение
     await message.answer(message_text, parse_mode='HTML')
