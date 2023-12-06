@@ -1,9 +1,12 @@
+import asyncio
 from aiogram import types
+from aiogram.types import FSInputFile
 from handlers.check_movie_answer import is_close_enough
 from config import API_KEY, API_URL
 import requests
 import handlers.user_handlers as uh
 from database import db_queries as db
+import handlers.file_handlers as fh
 
 # Словарь для хранения данных о викторине
 all_data = {}
@@ -26,12 +29,20 @@ async def get_movie_description():
 current_question = 0
 user_answers = []
 answers = ['nope']
+optional_info = []
 
 
 async def start_movie_quiz(message: types.Message):
-    global answers
+    global answers, optional_info, all_data
     description, movie_name = await get_movie_description()
     answers.append(movie_name)
+
+    if len(optional_info) == 0:
+        optional_info = [1]
+        optional_info[0] = all_data
+    else:
+        optional_info.append(all_data)
+
     if description:
         await message.answer(description)
         await answers_keyboard(message)
@@ -45,7 +56,7 @@ async def answers_keyboard(message: types.Message):
         [types.KeyboardButton(text="💡 Подсказка")]
     ]
     keyboard = types.ReplyKeyboardMarkup(keyboard=kb)
-    return await message.answer(f"Выберите правильный ответ", reply_markup=keyboard)
+    return await message.answer(f"Напишите название фильма", reply_markup=keyboard)
 
 
 def get_hints():
@@ -111,6 +122,32 @@ async def movie_quiz_answer(message: types.Message):
             await show_results(message)
 
 
+async def get_movies_file(message: types.Message):
+    global optional_info
+    info = "Информация о фильмах из вопросов:\n\n"
+
+    for movie in optional_info:
+        for person in movie['persons']:
+            if person['enProfession'] == 'director':
+                director = person['name']
+                break
+        info += (f"Название фильма: {movie['name']}\nОписание: {movie['description']}\nРежиссер: {director}\nГод "
+                 f"выпуска: {movie['year']}\nСтрана производства: {movie['countries'][0]['name']}\nРейтинг на "
+                 f"Кинопоиске: {movie['rating']['kp']}\nРейтинг на IMDB: {movie['rating']['imdb']}\nСтраница фильма "
+                 f"на Кинопоиске: https://www.kinopoisk.ru/film/{movie['id']}/\n\n\n")
+
+    user_id = message.from_user.id
+    filename = fh.save_info_to_file(user_id, info, 'movie_info')
+
+    file = FSInputFile(filename)
+
+    await message.answer_document(file)
+    optional_info.clear()
+
+    await asyncio.sleep(1)
+    fh.delete_file(filename)
+
+
 async def not_know_answer(message: types.Message):
     global user_answers, current_question
     user_answers.append(False)
@@ -123,7 +160,7 @@ async def not_know_answer(message: types.Message):
 
 
 async def show_results(message: types.Message):
-    global user_answers, current_question, used_hints, answers
+    global user_answers, current_question, used_hints, answers, optional_info
     correct_answers = user_answers.count(True)
 
     message_text = f"🎬 Результаты киновикторины:\nПравильных ответов: {correct_answers}/5\n\nОтветы на вопросы:\n"
@@ -151,4 +188,11 @@ async def show_results(message: types.Message):
     if possible_level > current_level:
         await message.answer(f"🎉 Поздравляем, вы перешли на {possible_level} уровень!")
     used_hints = 0
-    return await uh.main_menu(message)
+    answers = ['nope']
+    kb = [
+        [types.KeyboardButton(text="🔍 Получить информацию")],
+        [types.KeyboardButton(text="🏠 Главное меню")]
+    ]
+    keyboard = types.ReplyKeyboardMarkup(keyboard=kb)
+    return await message.answer(f"Хотите ли вы получить дополнительную информацию об этих фильмах?",
+                                reply_markup=keyboard)

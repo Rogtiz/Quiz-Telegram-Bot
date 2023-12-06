@@ -8,6 +8,7 @@ from database import db_queries as db
 
 
 in_quiz = False
+questions = [{"answers": [False]}, {"answers": [False]}, {"answers": [False]}, {"answers": [False]}, {"answers": [False]}]
 
 async def main_menu(message: types.Message):
     kb = [
@@ -157,7 +158,6 @@ difficulty_mapping = {"🟢 легкий": 1, "🟡 средний": 2, "🔴 с
 
 difficulty = 0
 
-
 async def choose_difficulty(message: types.Message):
     global difficulty, in_quiz
     difficulty = message.text.lower()
@@ -249,6 +249,7 @@ async def show_results(message: types.Message):
 
 
 def setup(dp):
+    global questions
     dp.message.register(mq.get_hints_keyboard, lambda message: message.text == "💡 Подсказка")
     dp.message.register(mq.give_hints, lambda message: message.text in mq.all_hints)
     dp.message.register(mq.answers_keyboard, lambda message: message.text == "✏️ Ответить")
@@ -257,6 +258,7 @@ def setup(dp):
     dp.message.register(cmd_help, Command('help'))
     dp.message.register(cmd_stats, Command('stats'))
     dp.message.register(start_quiz, Command('victory'))
+    dp.message.register(mq.get_movies_file, lambda message: message.text == "🔍 Получить информацию")
     dp.message.register(start_quiz, lambda message: message.text == "🧠 Викторина")
     dp.message.register(choose_difficulty, lambda message: message.text.lower() in difficulty_mapping.keys())
     dp.message.register(mq.start_movie_quiz, lambda message: message.text == "🎬 Киновикторина")
@@ -267,6 +269,7 @@ def setup(dp):
     dp.message.register(cmd_top_level, lambda message: message.text == "🏆 Топ по уровню")
     dp.message.register(cmd_top_questions_qty, lambda message: message.text == "🏆 Топ по количеству вопросов")
     dp.message.register(main_menu, lambda message: message.text == "🔙 Назад")
+    dp.message.register(main_menu, lambda message: message.text == "🏠 Главное меню")
     # dp.callback_query.register(start_quiz, F.data == "victory")
     dp.message.register(answer_question, lambda message: message.text in questions[current_question_index]['answers'])
     dp.message.register(mq.movie_quiz_answer, lambda message: message.text)
