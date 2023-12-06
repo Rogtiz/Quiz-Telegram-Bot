@@ -103,7 +103,7 @@ def auto_update_user_level(user_id, experience):
         return new_level
     result = get_user_info(user_id, 'experience')[0]
     update_experience_query = "UPDATE users SET experience = %s WHERE user_id = %s"
-    cursor.execute(update_experience_query, (done_experience + result, user_id))
+    cursor.execute(update_experience_query, (experience + result, user_id))
 
     cnx.commit()
     return current_level
