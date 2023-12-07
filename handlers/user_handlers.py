@@ -6,9 +6,10 @@ from aiogram.filters import Command
 import handlers.movie_quiz_handler as mq
 from database import db_queries as db
 
-
 in_quiz = False
-questions = [{"answers": [False]}, {"answers": [False]}, {"answers": [False]}, {"answers": [False]}, {"answers": [False]}]
+questions = [{"answers": [False]}, {"answers": [False]}, {"answers": [False]}, {"answers": [False]},
+             {"answers": [False]}]
+
 
 async def main_menu(message: types.Message):
     kb = [
@@ -85,7 +86,10 @@ async def cmd_top_level(message: types.Message):
     result = db.get_top_users('level')
     message_text = "<b>🏆 Топ по уровню:</b>\n"
     for i in range(len(result)):
-        message_text += f"{i + 1}. {result[i][2]} - {result[i][6]} уровень\n"
+        for k in range(2, 5):
+            if str(result[i][k]) != 'None':
+                message_text += f"{i + 1}. {result[i][k]} - {result[i][6]} уровень\n"
+                break
     await message.answer(message_text, parse_mode='HTML')
 
 
@@ -96,7 +100,10 @@ async def cmd_top_questions_qty(message: types.Message):
 
     # Добавляем каждый элемент топа в сообщение
     for i in range(len(result)):
-        message_text += f"{i + 1}. {result[i][2]} - {result[i][7] + result[i][10]} вопросов\n"
+        for k in range(2, 5):
+            if str(result[i][k]) != 'None':
+                message_text += f"{i + 1}. {result[i][k]} - {result[i][7] + result[i][10]} вопросов\n"
+                break
 
     # Отправляем сформированное сообщение
     await message.answer(message_text, parse_mode='HTML')
@@ -157,6 +164,7 @@ def get_questions(difficulty):
 difficulty_mapping = {"🟢 легкий": 1, "🟡 средний": 2, "🔴 сложный": 3}
 
 difficulty = 0
+
 
 async def choose_difficulty(message: types.Message):
     global difficulty, in_quiz
