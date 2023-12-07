@@ -23,7 +23,7 @@ In order to run the bot you will need to modify the config.py file and fill in t
 -------------------------------------------------------------------------------------
 
 
-This is my first "big" project. I will be glad to your suggestions on how to improve the bot's quality.
+This is my first "big" project. I will be glad to your suggestions on how to improve the code's quality.
 
-Это мой первый "большой" проект. Буду рад вашим предложениям по улучшению качества бота.
+Это мой первый "большой" проект. Буду рад вашим предложениям по улучшению качества кода.
 
